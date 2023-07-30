@@ -3,10 +3,13 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-// import { axios } from "axios";
+import axios from "axios";
+import toastFunction from "../toast";
 import styles from "./signup.module.css";
 
 const Signup = () => {
+  const router = useRouter();
+
   const [userData, setUserData] = useState({
     username: "",
     email: "",
@@ -20,6 +23,8 @@ const Signup = () => {
     password: false,
     confirmPassword: false,
   });
+
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -44,9 +49,33 @@ const Signup = () => {
   let emailIsValid = false;
   emailIsValid = userDataIsTouched.email && emailRegex.test(userData.email);
 
+  let confirmPasswordIsValid = false;
+  confirmPasswordIsValid = userData.password === userData.confirmPassword;
+
+  const validateSignupForm = () => {
+    return (
+      isFieldValid(userData.username, 2) &&
+      isFieldValid(userData.password, 6) &&
+      confirmPasswordIsValid &&
+      emailIsValid
+    );
+  };
+
   const handleSignupSubmit = async (e: any) => {
     e.preventDefault();
-    // Handle signup logic here, e.g., sending the data to the backend
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/users/signup", userData);
+      toastFunction("success", response.data.message);
+      console.log(response.data);
+      router.push("/login");
+    } catch (error: any) {
+      console.log(error);
+      toastFunction("error", "Signup failed!, Please try again later");
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
 
     console.log(userData);
   };
@@ -137,28 +166,29 @@ const Signup = () => {
           value={userData.confirmPassword}
           onChange={handleChange}
           className={`${styles.input} ${
-            userDataIsTouched.confirmPassword &&
-            !(userData.password === userData.confirmPassword)
+            userDataIsTouched.confirmPassword && !confirmPasswordIsValid
               ? styles.error
               : styles.correct
           } ${
-            userDataIsTouched.confirmPassword &&
-            !(userData.password === userData.confirmPassword)
+            userDataIsTouched.confirmPassword && !confirmPasswordIsValid
               ? styles.shake
               : ""
           }`}
         />
         <div
           className={`${styles["error-message"]} ${
-            userDataIsTouched.confirmPassword &&
-            !(userData.password === userData.confirmPassword)
+            userDataIsTouched.confirmPassword && !confirmPasswordIsValid
               ? styles["error-visible"]
               : ""
           }`}
         >
           Confirm Password must be same as password.
         </div>
-        <button type="submit" className={styles.signupButton}>
+        <button
+          type="submit"
+          className={styles.signupButton}
+          disabled={!validateSignupForm()}
+        >
           Sign Up
         </button>
         <div className={styles["login-link"]}>

@@ -2,11 +2,12 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-// import { axios } from "axios";
-
+import axios from "axios";
+import toastFunction from "../toast";
 import styles from "../signup/signup.module.css";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [userData, setUserData] = useState({
     email: "",
     password: "",
@@ -39,8 +40,13 @@ export default function LoginPage() {
 
   const handleLoginSubmit = async (e: any) => {
     e.preventDefault();
-    // Handle signup logic here, e.g., sending the data to the backend
-    console.log(userData);
+    try {
+      const response = await axios.post("/api/users/login", userData);
+      toastFunction("success", "Login successfully!");
+      router.push("/profile");
+    } catch (error: any) {
+      toastFunction("error", error.message);
+    }
   };
 
   return (

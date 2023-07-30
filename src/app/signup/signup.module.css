@@ -60,6 +60,15 @@
   background-color: #0056b3;
 }
 
+.signupButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.signupButton:disabled:hover {
+  background-color: #cccccc;
+}
+
 .login-link {
   margin-top: 10px;
   text-align: center;
